@@ -24,7 +24,7 @@ page_recipes = {"자취생 레시피": my_recipes}
 # GUI 생성
 root = Tk()
 root.title("🍱 레시피북 (페이지별)")
-root.geometry("950x600")
+root.geometry("1050x600")
 
 # 왼쪽 프레임: 페이지 선택
 page_frame = Frame(root)
@@ -33,10 +33,40 @@ page_frame.pack(side=LEFT, fill=Y, padx=10, pady=10)
 page_label = Label(page_frame, text="레시피 범위", font=("Arial", 12, "bold"))
 page_label.pack(pady=(0, 5))
 
-page_listbox = Listbox(page_frame, exportselection=False, font=("Arial", 12), height=30)
+page_listbox = Listbox(page_frame, exportselection=False, font=("Arial", 12), height=20)
 for page in PAGE_API_MAP.keys():
     page_listbox.insert(END, page)
 page_listbox.pack()
+
+# 검색창: 페이지 리스트박스 아래 정렬
+search_label = Label(page_frame, text="🔍 레시피 검색", font=("Arial", 11))
+search_label.pack(pady=(10, 2))
+
+search_entry = Entry(page_frame, font=("Arial", 11), width=20)
+search_entry.pack()
+
+def search_recipes():
+    query = search_entry.get().strip().lower()
+    recipe_listbox.delete(0, END)
+    output.delete(1.0, END)
+    matched = []
+    for page, recipes in page_recipes.items():
+        if page == "자취생 레시피":
+            continue  # 자취생 레시피는 검색 제외
+        for r in recipes:
+            title = r.get("RCP_NM", "").lower()
+            if query in title:
+                matched.append((page, r))
+
+    for i, (page, r) in enumerate(matched):
+        recipe_listbox.insert(END, r.get("RCP_NM", "제목 없음"))
+
+    search_results.clear()
+    search_results.extend(matched)
+
+search_results = []
+search_button = Button(page_frame, text="검색", command=search_recipes, font=("Arial", 10))
+search_button.pack(pady=(2, 10))
 
 # 가운데 프레임: 레시피 목록 + 스크롤바
 recipe_frame = Frame(root)
@@ -45,7 +75,7 @@ recipe_frame.pack(side=LEFT, fill=Y, padx=10, pady=10)
 scrollbar = Scrollbar(recipe_frame)
 scrollbar.pack(side=RIGHT, fill=Y)
 
-recipe_listbox = Listbox(recipe_frame, yscrollcommand=scrollbar.set, width=35, font=("Arial", 11))
+recipe_listbox = Listbox(recipe_frame, yscrollcommand=scrollbar.set, width=40, font=("Arial", 11))
 recipe_listbox.pack(side=LEFT, fill=Y)
 scrollbar.config(command=recipe_listbox.yview)
 
@@ -61,6 +91,7 @@ def on_page_select(event):
     page = page_listbox.get(selection[0])
     recipe_listbox.delete(0, END)
     output.delete(1.0, END)
+    search_results.clear()
 
     if page == "자취생 레시피":
         recipes = page_recipes[page]
@@ -82,12 +113,19 @@ def on_page_select(event):
 
 # 레시피 선택 시 상세 정보 출력
 def on_recipe_select(event):
-    page_idx = page_listbox.curselection()
     rec_idx = recipe_listbox.curselection()
-    if not page_idx or not rec_idx:
+    if not rec_idx:
         return
-    page = page_listbox.get(page_idx[0])
-    recipe = page_recipes.get(page, [])[rec_idx[0]]
+    idx = rec_idx[0]
+
+    if search_results:
+        page, recipe = search_results[idx]
+    else:
+        page_idx = page_listbox.curselection()
+        if not page_idx:
+            return
+        page = page_listbox.get(page_idx[0])
+        recipe = page_recipes.get(page, [])[idx]
 
     if page == "자취생 레시피":
         name = recipe.get("title", "제목 없음")
