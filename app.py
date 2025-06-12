@@ -18,7 +18,7 @@ PAGE_API_MAP = {
 page_recipes = {"자취생 레시피": my_recipes}
 
 root = Tk()
-root.title("🍱 레시피북 (페이지별)")
+root.title("🍱 레시피북 ")
 root.geometry("1300x900")
 
 page_frame = Frame(root)
