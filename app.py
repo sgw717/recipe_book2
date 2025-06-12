@@ -45,7 +45,7 @@ def search_recipes():
     matched = []
     for page, recipes in page_recipes.items():
         if page == "자취생 레시피":
-            continue  
+            continue
         for r in recipes:
             title = r.get("RCP_NM", "").lower()
             if query in title:
@@ -123,8 +123,8 @@ def on_recipe_select(event):
     else:
         name = recipe.get("RCP_NM", "제목 없음")
         parts = recipe.get("RCP_PARTS_DTLS", "재료 정보 없음")
-        manual = [recipe.get(f"MANUAL{str(i).zfill(2)}", "") for i in range(1, 21)]
-        manual = [f"{i+1}. {m.strip()}" for i, m in enumerate(manual) if m.strip()]
+        manual = [recipe.get(f"MANUAL{str(i).zfill(2)}", "").strip() for i in range(1, 21)]
+        manual = [m for m in manual if m]
 
     instructions = "\n".join(manual)
     output.delete(1.0, END)
